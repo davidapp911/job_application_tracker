@@ -1,3 +1,4 @@
+import typer
 import sqlalchemy as sa
 from tabulate import tabulate
 from .db import engine
@@ -5,11 +6,17 @@ from .db import SessionLocal
 from .db import Base
 from .models import Entry
 
+app = typer.Typer()
 
 def init():
     Base.metadata.create_all(bind=engine)
+    app()
 
-def add(company, job_title, application_status):
+@app.command()
+def add(company: str, job_title:str, application_status:str):
+    """
+    Inserts a new Job Application entry to the database
+    """
     session = SessionLocal()
     try:
         job = Entry(company=company, job_title=job_title, application_status=application_status)
@@ -18,7 +25,11 @@ def add(company, job_title, application_status):
     finally:
         session.close()
 
+@app.command()
 def show_all():
+    """
+    Prints all the Job Application entries in the database
+    """
     session = SessionLocal()
     try:
         stmt = sa.select(Entry)
@@ -28,16 +39,12 @@ def show_all():
     finally:
         session.close()
 
-def main():
+@app.command()
+def reset_db():
+    """
+    TODO: removes all entries and resets id
+    """
     pass
-
 
 if __name__ == "__main__":
     init()
-
-    # Temporary manual testing
-    add("Google", "Software Engineer", "accepted")
-    add("Meta", "Backend Engineer", "rejected")
-
-    print("\nAll Jobs:")
-    show_all()
