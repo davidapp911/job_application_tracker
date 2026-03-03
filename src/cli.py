@@ -1,5 +1,6 @@
 import typer
 import sqlalchemy as sa
+from sqlalchemy import text
 from tabulate import tabulate
 from .db import engine
 from .db import SessionLocal
@@ -42,7 +43,22 @@ def show_all():
 @app.command()
 def reset_db():
     """
-    TODO: removes all entries and resets id
+    Removes all entries and resets id
+    """
+    try:
+        session = SessionLocal()
+        session.execute(Entry.__table__.delete())
+        session.execute(
+            text(f"DELETE FROM sqlite_sequence WHERE name='{Entry.__tablename__}'")
+        )
+        session.commit()
+    finally:
+        session.close()
+        
+@app.command()
+def search_entry(id: int):
+    """
+    TODO: return entry that has input id
     """
     pass
 
