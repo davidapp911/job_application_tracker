@@ -14,13 +14,13 @@ def init():
     app()
 
 @app.command()
-def add(company: str, job_title:str, application_status:str):
+def add(company: str, job_title:str):
     """
     Inserts a new Job Application entry to the database
     """
     session = SessionLocal()
     try:
-        job = Entry(company=company, job_title=job_title, application_status=application_status)
+        job = Entry(company=company, job_title=job_title)
         session.add(job)
         session.commit()
     finally:
@@ -61,6 +61,7 @@ def search_entry(id: int):
     TODO: return entry that has input id
     """
     pass
+
 
 if __name__ == "__main__":
     init()

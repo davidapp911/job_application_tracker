@@ -12,7 +12,7 @@ class Entry(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     company: Mapped[str] = mapped_column(String(30))
     job_title: Mapped[str] = mapped_column(String(30))
-    application_status: Mapped[str] = mapped_column((String(30)))
+    application_status: Mapped[str] = mapped_column((String(30)), default="Pending start")
 
     def __repr__(self) -> str:
         return f"Job(id={self.id!r}, company={self.company!r}, job_title={self.job_title!r}, application_status={self.application_status!r})"
