@@ -9,10 +9,6 @@ from .models import Entry
 
 app = typer.Typer()
 
-def init():
-    Base.metadata.create_all(bind=engine)
-    app()
-
 @app.command()
 def add(company: str, job_title:str):
     """
@@ -64,4 +60,4 @@ def search_entry(id: int):
 
 
 if __name__ == "__main__":
-    init()
+    app()

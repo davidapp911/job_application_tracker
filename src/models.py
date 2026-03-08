@@ -16,20 +16,3 @@ class Entry(Base):
 
     def __repr__(self) -> str:
         return f"Job(id={self.id!r}, company={self.company!r}, job_title={self.job_title!r}, application_status={self.application_status!r})"
-    
-def main():
-    job_data ={
-        "id": 1,
-        "company": "apple",
-        "job_title": "software nerd",
-        "application_status": "Accepted"
-    }
-    
-    job1 = Entry(**job_data)
-    print(job1)
-
-    job2 = Entry(id=2, company="dell", job_title="qa engineer", application_status="Rejected")
-    print(job2)
-
-if __name__ == "__main__":
-    main()
