@@ -1,14 +1,11 @@
-import pathlib
-from .db import Base
-from .db import engine
 from .models import Entry
 
 #TODO: Implement the functions
 __all__ = [
-    "EntryDB"
+    "EntryDB",
     "EntryException",
     "MissingCompany",
-    "MissingPosition"
+    "MissingJobTitle"
 ]
 
 class EntryException(Exception):
@@ -20,36 +17,26 @@ class MissingCompany(Exception):
 class MissingJobTitle(Exception):
     pass
 
-
 class EntryDB:
-    def __init__(self):
-        Base.metadata.create_all(bind=engine)
+    def __init__(self, session):
+        self.session = session
 
-    def add_entry(self, entry: Entry):
+    def add(self, entry: Entry):
         if not entry.company:
             raise MissingCompany
         if not entry.job_title:
             raise MissingJobTitle
+        
+        self.session.add(entry)
 
-    def get_entry(self):
+    def get(self):
         pass
 
-    def update_entry(self):
+    def update(self):
         pass
 
     def delete_entry(self):
         pass
 
-    def get_entries(self):
-        pass
-
-    def update_entry_status(self):
-        pass
-
-
-def main():
-    db = EntryDB()
-    print(f"Hello {2}")
-
-if __name__ == "__main__":
-    main()
+    def get_all(self):
+        return [entry.to_dict() for entry in self.session.query(Entry).all()]
