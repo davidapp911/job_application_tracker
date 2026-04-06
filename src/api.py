@@ -35,9 +35,11 @@ class EntryDB:
     def get_all(self):
         return [entry.to_dict() for entry in self.session.query(Entry).all()]
     
-    def update(self):
-        pass
+    def update(self, id, new_data):
+        self.session.query(Entry).filter(Entry.id == id).update(new_data)
 
     def delete(self, id):
-        pass
+        entry = self.session.query(Entry).filter(Entry.id == id).first()
+        if entry:
+            self.session.delete(entry)
 

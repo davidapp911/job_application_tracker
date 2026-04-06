@@ -51,11 +51,30 @@ def search_by(
         print(tabulate(entries, headers="keys"))
 
 @app.command()
+def update_entry(
+    id: str = None,
+    company: str = None,
+    job_title: str = None,
+    ):
+
+    update_data = {
+        "company": company,
+        "job_title": job_title,
+    }
+
+    update_data = {k: v for k, v in update_data.items() if v is not None}
+
+
+    with database_session() as db:
+        db.update(id, update_data)
+
+@app.command()
 def delete_entry(id: str = None):
     """
     TODO: removes the entry that has the id value given by the user
     """
-    pass
+    with database_session() as db:
+        db.delete(id)
 
 @app.command()
 def reset_db():
