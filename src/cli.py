@@ -51,6 +51,13 @@ def search_by(
         print(tabulate(entries, headers="keys"))
 
 @app.command()
+def delete_entry(id: str = None):
+    """
+    TODO: removes the entry that has the id value given by the user
+    """
+    pass
+
+@app.command()
 def reset_db():
     """
     TODO: removes all entries and resets id
