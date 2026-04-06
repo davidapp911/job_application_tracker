@@ -56,6 +56,9 @@ def update_entry(
     company: str = None,
     job_title: str = None,
     ):
+    """
+    Updates company and/or job_title of an entry with a given id
+    """
 
     update_data = {
         "company": company,
@@ -71,7 +74,7 @@ def update_entry(
 @app.command()
 def delete_entry(id: str = None):
     """
-    TODO: removes the entry that has the id value given by the user
+    Removes the entry that has the id value given by the user
     """
     with database_session() as db:
         db.delete(id)
