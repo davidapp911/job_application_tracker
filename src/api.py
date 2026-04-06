@@ -29,14 +29,15 @@ class EntryDB:
         
         self.session.add(entry)
 
-    def get(self):
-        pass
-
+    def get_by(self, fields):
+        return [entry.to_dict() for entry in self.session.query(Entry).filter_by(**fields).all()]
+        
+    def get_all(self):
+        return [entry.to_dict() for entry in self.session.query(Entry).all()]
+    
     def update(self):
         pass
 
-    def delete_entry(self):
+    def delete(self, id):
         pass
 
-    def get_all(self):
-        return [entry.to_dict() for entry in self.session.query(Entry).all()]

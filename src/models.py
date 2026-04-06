@@ -18,3 +18,6 @@ class Entry(Base):
             "job_title": self.job_title,
             "application_status": self.application_status
         }
+    
+    def __repr__(self):
+        print(f"{self.id} {self.company} {self.job_title}")
