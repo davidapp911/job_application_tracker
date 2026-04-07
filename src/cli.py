@@ -7,17 +7,16 @@ from .api import EntryDB
 
 app = typer.Typer()
 
+
 @app.command()
-def new_entry(
-    company: str, 
-    job_title:str
-    ):
+def new_entry(company: str, job_title: str):
     """
     Inserts a new Job Application entry to the database
     """
     with database_session() as db:
         db.add(Entry(company=company, job_title=job_title))
-        
+
+
 @app.command()
 def show_all():
     """
@@ -26,14 +25,15 @@ def show_all():
     with database_session() as db:
         entries = db.get_all()
         print(tabulate(entries, headers="keys"))
-        
+
+
 @app.command()
 def search_by(
-    id: str | None = None, 
-    company: str | None = None, 
-    job_title: str | None = None, 
-    application_status:str | None = None
-    ):
+    id: str | None = None,
+    company: str | None = None,
+    job_title: str | None = None,
+    application_status: str | None = None,
+):
     """
     Return job entry that has id that matches the input id
     """
@@ -41,7 +41,7 @@ def search_by(
         "id": id,
         "company": company,
         "job_title": job_title,
-        "application_status": application_status
+        "application_status": application_status,
     }
 
     query_filter = {k: v for k, v in query_filter.items() if v is not None}
@@ -50,12 +50,13 @@ def search_by(
         entries = db.get_by(query_filter)
         print(tabulate(entries, headers="keys"))
 
+
 @app.command()
 def update_entry(
     id: str | None = None,
     company: str | None = None,
     job_title: str | None = None,
-    ):
+):
     """
     Updates company and/or job_title of an entry with a given id
     """
@@ -69,6 +70,7 @@ def update_entry(
     with database_session() as db:
         db.update(id, update_data)
 
+
 @app.command()
 def delete_entry(id: str | int | None = None):
     """
@@ -77,6 +79,7 @@ def delete_entry(id: str | int | None = None):
     with database_session() as db:
         db.delete(id)
 
+
 @app.command()
 def reset_db():
     """
@@ -84,11 +87,12 @@ def reset_db():
     """
     pass
 
+
 @contextmanager
 def database_session():
     session = SessionLocal()
     db = EntryDB(session)
-    
+
     try:
         yield db
         session.commit()
