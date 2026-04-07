@@ -1,6 +1,5 @@
 from .models import Entry
 
-#TODO: Implement the functions
 __all__ = [
     "EntryDB",
     "EntryException",

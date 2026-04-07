@@ -59,14 +59,12 @@ def update_entry(
     """
     Updates company and/or job_title of an entry with a given id
     """
-
     update_data = {
         "company": company,
         "job_title": job_title,
     }
 
     update_data = {k: v for k, v in update_data.items() if v is not None}
-
 
     with database_session() as db:
         db.update(id, update_data)
