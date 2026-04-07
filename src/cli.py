@@ -29,10 +29,10 @@ def show_all():
         
 @app.command()
 def search_by(
-    id: str = None, 
-    company: str = None, 
-    job_title: str = None, 
-    application_status:str = None
+    id: str | None = None, 
+    company: str | None = None, 
+    job_title: str | None = None, 
+    application_status:str | None = None
     ):
     """
     Return job entry that has id that matches the input id
@@ -52,9 +52,9 @@ def search_by(
 
 @app.command()
 def update_entry(
-    id: str = None,
-    company: str = None,
-    job_title: str = None,
+    id: str | None = None,
+    company: str | None = None,
+    job_title: str | None = None,
     ):
     """
     Updates company and/or job_title of an entry with a given id
@@ -70,7 +70,7 @@ def update_entry(
         db.update(id, update_data)
 
 @app.command()
-def delete_entry(id: str = None):
+def delete_entry(id: str | int | None = None):
     """
     Removes the entry that has the id value given by the user
     """
