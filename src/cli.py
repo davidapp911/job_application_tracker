@@ -1,4 +1,5 @@
 import typer
+from typing import Optional
 from tabulate import tabulate
 from contextlib import contextmanager
 from .db import SessionLocal
@@ -24,15 +25,15 @@ def show_all():
     """
     with database_session() as db:
         entries = db.get_all()
-        print(tabulate(entries, headers="keys"))
+        print(f"\n{tabulate(entries, headers='keys')}\n")
 
 
 @app.command()
 def search_by(
-    id: str | None = None,
-    company: str | None = None,
-    job_title: str | None = None,
-    application_status: str | None = None,
+    id: Optional[str] = None,
+    company: Optional[str] = None,
+    job_title: Optional[str] = None,
+    application_status: Optional[str] = None,
 ):
     """
     Return job entry that has id that matches the input id
@@ -48,14 +49,14 @@ def search_by(
 
     with database_session() as db:
         entries = db.get_by(query_filter)
-        print(tabulate(entries, headers="keys"))
+        print(f"\n{tabulate(entries, headers='keys')}\n")
 
 
 @app.command()
 def update_entry(
-    id: str | None = None,
-    company: str | None = None,
-    job_title: str | None = None,
+    id: Optional[str] = None,
+    company: Optional[str] = None,
+    job_title: Optional[str] = None,
 ):
     """
     Updates company and/or job_title of an entry with a given id
@@ -72,7 +73,7 @@ def update_entry(
 
 
 @app.command()
-def delete_entry(id: str | int | None = None):
+def delete_entry(id: Optional[str] = None):
     """
     Removes the entry that has the id value given by the user
     """
