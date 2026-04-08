@@ -73,7 +73,17 @@ def update_entry(
 
 
 @app.command()
-def delete_entry(id: Optional[str] = None):
+def update_status(id: str, status: str):
+    """
+    Updates the Job application entry status
+    """
+
+    with database_session() as db:
+        db.update(id, {"application_status": status})
+
+
+@app.command()
+def delete_entry(id: str):
     """
     Removes the entry that has the id value given by the user
     """
