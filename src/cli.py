@@ -5,17 +5,22 @@ from contextlib import contextmanager
 from .db import SessionLocal
 from .models import Entry
 from .api import EntryDB
+from .exceptions import EntryException
 
 app = typer.Typer()
 
 
 @app.command()
-def new_entry(company: str, job_title: str):
+def new_entry(company: str = typer.Option(...), job_title: str = typer.Option(...)):
     """
     Inserts a new Job Application entry to the database
     """
-    with database_session() as db:
-        db.add(Entry(company=company, job_title=job_title))
+    try:
+        with database_session() as db:
+            db.add(Entry(company=company, job_title=job_title))
+    except EntryException as e:
+        typer.secho(f"{e.__class__.__name__}: {e.message}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -30,7 +35,7 @@ def show_all():
 
 @app.command()
 def search_by(
-    id: Optional[str] = None,
+    id: str,
     company: Optional[str] = None,
     job_title: Optional[str] = None,
     application_status: Optional[str] = None,
@@ -77,7 +82,6 @@ def update_status(id: str, status: str):
     """
     Updates the Job application entry status
     """
-
     with database_session() as db:
         db.update(id, {"application_status": status})
 

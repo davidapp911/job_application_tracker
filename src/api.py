@@ -1,18 +1,5 @@
 from .models import Entry
-
-__all__ = ["EntryDB", "EntryException", "MissingCompany", "MissingJobTitle"]
-
-
-class EntryException(Exception):
-    pass
-
-
-class MissingCompany(Exception):
-    pass
-
-
-class MissingJobTitle(Exception):
-    pass
+from .exceptions import MissingCompany, MissingJobTitle
 
 
 class EntryDB:
@@ -21,9 +8,9 @@ class EntryDB:
 
     def add(self, entry: Entry):
         if not entry.company:
-            raise MissingCompany
+            raise MissingCompany()
         if not entry.job_title:
-            raise MissingJobTitle
+            raise MissingJobTitle()
 
         self.session.add(entry)
 
