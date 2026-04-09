@@ -30,7 +30,7 @@ def show_all():
     """
     with database_session() as db:
         entries = db.get_all()
-        print(f"\n{tabulate(entries, headers='keys')}\n")
+        print_table(entries)
 
 
 @app.command()
@@ -54,7 +54,7 @@ def search_by(
 
     with database_session() as db:
         entries = db.get_by(query_filter)
-        print(f"\n{tabulate(entries, headers='keys')}\n")
+        print_table(entries)
 
 
 @app.command()
@@ -116,6 +116,13 @@ def database_session():
         raise
     finally:
         session.close()
+
+
+def print_table(entries):
+    if not entries:
+        print("No entries found")
+    else:
+        print(f"\n{tabulate(entries, headers='keys')}\n")
 
 
 if __name__ == "__main__":
