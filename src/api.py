@@ -6,6 +6,7 @@ from .exceptions import (
     MissingSearchCriteria,
     EntryNotFound,
 )
+from .data_utils import filter_empty_fields
 
 
 class EntryDB:
@@ -21,31 +22,29 @@ class EntryDB:
         self.session.add(entry)
 
     def get_by(self, fields):
-        filter = {k: v for k, v in fields.items() if v is not None and v.strip() != ""}
+        fields = filter_empty_fields(fields)
 
-        if not filter:
+        if not fields:
             raise MissingSearchCriteria()
 
         return [
             entry.to_dict()
-            for entry in self.session.query(Entry).filter_by(**filter).all()
+            for entry in self.session.query(Entry).filter_by(**fields).all()
         ]
 
     def get_all(self):
         return [entry.to_dict() for entry in self.session.query(Entry).all()]
 
-    def update(self, id, new_data):
-        new_data = {
-            k: v for k, v in new_data.items() if v is not None and v.strip() != ""
-        }
+    def update(self, id, data):
+        data = filter_empty_fields(data)
         entry = self.session.query(Entry).filter(Entry.id == id)
 
-        if not new_data:
+        if not data:
             raise MissingUpdateFields()
         if not entry:
             raise EntryNotFound(id)
 
-        entry.update(new_data)
+        entry.update(data)
 
     def delete(self, id):
         entry = self.session.query(Entry).filter(Entry.id == id).first()
