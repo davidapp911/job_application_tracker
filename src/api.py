@@ -1,5 +1,11 @@
 from .models import Entry
-from .exceptions import MissingCompany, MissingJobTitle
+from .exceptions import (
+    MissingCompany,
+    MissingJobTitle,
+    MissingUpdateFields,
+    MissingSearchCriteria,
+    EntryNotFound,
+)
 
 
 class EntryDB:
@@ -15,18 +21,36 @@ class EntryDB:
         self.session.add(entry)
 
     def get_by(self, fields):
+        filter = {k: v for k, v in fields.items() if v is not None and v.strip() != ""}
+
+        if not filter:
+            raise MissingSearchCriteria()
+
         return [
             entry.to_dict()
-            for entry in self.session.query(Entry).filter_by(**fields).all()
+            for entry in self.session.query(Entry).filter_by(**filter).all()
         ]
 
     def get_all(self):
         return [entry.to_dict() for entry in self.session.query(Entry).all()]
 
     def update(self, id, new_data):
-        self.session.query(Entry).filter(Entry.id == id).update(new_data)
+        new_data = {
+            k: v for k, v in new_data.items() if v is not None and v.strip() != ""
+        }
+        entry = self.session.query(Entry).filter(Entry.id == id)
+
+        if not new_data:
+            raise MissingUpdateFields()
+        if not entry:
+            raise EntryNotFound(id)
+
+        entry.update(new_data)
 
     def delete(self, id):
         entry = self.session.query(Entry).filter(Entry.id == id).first()
-        if entry:
-            self.session.delete(entry)
+
+        if not entry:
+            raise EntryNotFound(id)
+
+        self.session.delete(entry)

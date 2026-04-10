@@ -1,11 +1,8 @@
 import typer
 from typing import Optional
-from tabulate import tabulate
-from contextlib import contextmanager
-from .db import SessionLocal
 from .models import Entry
-from .api import EntryDB
 from .exceptions import EntryException
+from .cli_utils import database_session, handle_cli_error, success, print_table
 
 app = typer.Typer()
 
@@ -19,8 +16,9 @@ def new_entry(company: str = typer.Option(...), job_title: str = typer.Option(..
         with database_session() as db:
             db.add(Entry(company=company, job_title=job_title))
     except EntryException as e:
-        typer.secho(f"{e.__class__.__name__}: {e.message}", fg=typer.colors.RED)
-        raise typer.Exit(code=1)
+        handle_cli_error(e)
+
+    success("Entry created succesfully.")
 
 
 @app.command()
@@ -30,12 +28,13 @@ def show_all():
     """
     with database_session() as db:
         entries = db.get_all()
-        print_table(entries)
+
+    print_table(entries)
 
 
 @app.command()
 def search_by(
-    id: str,
+    id: Optional[str] = None,
     company: Optional[str] = None,
     job_title: Optional[str] = None,
     application_status: Optional[str] = None,
@@ -50,11 +49,13 @@ def search_by(
         "application_status": application_status,
     }
 
-    query_filter = {k: v for k, v in query_filter.items() if v is not None}
+    try:
+        with database_session() as db:
+            entries = db.get_by(query_filter)
+    except EntryException as e:
+        handle_cli_error(e)
 
-    with database_session() as db:
-        entries = db.get_by(query_filter)
-        print_table(entries)
+    print_table(entries)
 
 
 @app.command()
@@ -71,10 +72,13 @@ def update_entry(
         "job_title": job_title,
     }
 
-    update_data = {k: v for k, v in update_data.items() if v is not None}
+    try:
+        with database_session() as db:
+            db.update(id, update_data)
+    except EntryException as e:
+        handle_cli_error(e)
 
-    with database_session() as db:
-        db.update(id, update_data)
+    success("Job entry updated successfully.")
 
 
 @app.command()
@@ -91,8 +95,13 @@ def delete_entry(id: str):
     """
     Removes the entry that has the id value given by the user
     """
-    with database_session() as db:
-        db.delete(id)
+    try:
+        with database_session() as db:
+            db.delete(id)
+    except EntryException as e:
+        handle_cli_error(e)
+
+    success("Job entry deleted succesfully.")
 
 
 @app.command()
@@ -101,28 +110,6 @@ def reset_db():
     TODO: removes all entries and resets id
     """
     pass
-
-
-@contextmanager
-def database_session():
-    session = SessionLocal()
-    db = EntryDB(session)
-
-    try:
-        yield db
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    finally:
-        session.close()
-
-
-def print_table(entries):
-    if not entries:
-        print("No entries found")
-    else:
-        print(f"\n{tabulate(entries, headers='keys')}\n")
 
 
 if __name__ == "__main__":
