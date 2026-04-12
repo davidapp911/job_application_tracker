@@ -8,7 +8,10 @@ app = typer.Typer()
 
 
 @app.command()
-def new_entry(company: str = typer.Option(...), job_title: str = typer.Option(...)):
+def add(
+    company: str = typer.Argument(...),
+    job_title: str = typer.Argument(...),
+):
     """
     Inserts a new Job Application entry to the database
     """
@@ -22,7 +25,7 @@ def new_entry(company: str = typer.Option(...), job_title: str = typer.Option(..
 
 
 @app.command()
-def show_all():
+def list():
     """
     Prints all the Job Application entries in the database
     """
@@ -34,10 +37,10 @@ def show_all():
 
 @app.command()
 def search_by(
-    id: Optional[str] = None,
-    company: Optional[str] = None,
-    job_title: Optional[str] = None,
-    application_status: Optional[str] = None,
+    id: Optional[str] = typer.Option(None),
+    company: Optional[str] = typer.Option(None),
+    job_title: Optional[str] = typer.Option(None),
+    application_status: Optional[str] = typer.Option(None),
 ):
     """
     Return job entry that has id that matches the input id
@@ -59,10 +62,10 @@ def search_by(
 
 
 @app.command()
-def update_entry(
-    id: Optional[str] = None,
-    company: Optional[str] = None,
-    job_title: Optional[str] = None,
+def update(
+    id: str = typer.Argument(...),
+    company: Optional[str] = typer.Option(None),
+    job_title: Optional[str] = typer.Option(None),
 ):
     """
     Updates company and/or job_title of an entry with a given id
@@ -82,16 +85,7 @@ def update_entry(
 
 
 @app.command()
-def update_status(id: str, status: str):
-    """
-    Updates the Job application entry status
-    """
-    with database_session() as db:
-        db.update(id, {"application_status": status})
-
-
-@app.command()
-def delete_entry(id: str):
+def delete(id: str = typer.Argument(...)):
     """
     Removes the entry that has the id value given by the user
     """
@@ -101,11 +95,11 @@ def delete_entry(id: str):
     except EntryException as e:
         handle_cli_error(e)
 
-    success("Job entry deleted succesfully.")
+    success("Job entry deleted successfully.")
 
 
 @app.command()
-def reset_db():
+def reset():
     """
     TODO: removes all entries and resets id
     """
