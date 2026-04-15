@@ -39,6 +39,10 @@ def filter_empty_fields(data: dict) -> dict:
         # Special handling for "id" field: ensure it is an integer.
         if k == "id":
             # Attempt to convert id to integer.
+
+            if isinstance(v, bool):
+                raise ValueError("Invalid id value: {v}")
+
             try:
                 output[k] = int(v)
             # Raise a clear error if conversion fails.

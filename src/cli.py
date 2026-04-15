@@ -49,7 +49,7 @@ def list() -> None:
 
 @app.command()
 def search_by(
-    id: Optional[str] = typer.Option(None),
+    id: Optional[int] = typer.Option(None),
     company: Optional[str] = typer.Option(None),
     job_title: Optional[str] = typer.Option(None),
     application_status: Optional[str] = typer.Option(None),
