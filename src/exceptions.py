@@ -41,6 +41,12 @@ class MissingUpdateFields(EntryException):
         super().__init__("No fields provided for update.")
 
 
+# Specific exception raised when a Field has the wrong data type.
+class WrongFieldType(EntryException):
+    def __init__(self, field_type) -> None:
+        super().__init__(f"Field must be of type {field_type}.")
+
+
 # Specific exception raised when no filters are provided for a search operation.
 class MissingSearchCriteria(EntryException):
     def __init__(self) -> None:

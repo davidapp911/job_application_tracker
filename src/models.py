@@ -18,7 +18,7 @@ class Entry(Base):
     id: Mapped[int] = mapped_column(primary_key=True)  # primary key identifier
     company: Mapped[str] = mapped_column(String(30))  # company name (limited length)
     job_title: Mapped[str] = mapped_column(String(30))  # job title (limited length)
-    application_status: Mapped[str] = mapped_column(
+    status: Mapped[str] = mapped_column(
         (String(30)), default="Pending start"
     )  # current status of the application with a default value
 
@@ -28,9 +28,9 @@ class Entry(Base):
             "id": self.id,
             "company": self.company,
             "job_title": self.job_title,
-            "application_status": self.application_status,
+            "status": self.status,
         }
 
     # Provides a string representation of the Entry instance (useful for debugging).
     def __repr__(self):
-        print(f"{self.id} {self.company} {self.job_title}")
+        return f"{self.id} {self.company} {self.job_title}"

@@ -1,6 +1,3 @@
-# job_application_tracker
-Repository for a cli app to track the job applications I am submitting.
-
 # Job Application Tracker
 
 A simple command-line application to track and manage job applications using a local SQLite database.

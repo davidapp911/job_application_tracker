@@ -7,9 +7,12 @@ job application entries.
 
 import typer
 from typing import Optional
+from .db import init_db
 from .models import Entry
 from .exceptions import EntryException
 from .cli_utils import database_session, handle_cli_error, success, print_table
+
+init_db()
 
 app = typer.Typer()
 

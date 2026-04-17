@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 from pathlib import Path
 
+
 # Base directory of the current file, used to build the database path.
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -29,3 +30,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 # Base class for all ORM models (used for table definitions).
 
 Base = declarative_base()
+
+
+def init_db():
+    Base.metadata.create_all(engine)
