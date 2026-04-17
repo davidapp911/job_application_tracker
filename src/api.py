@@ -1,7 +1,24 @@
+"""
+API layer for interacting with Entry objects.
+
+This module defines the EntryDB class, which acts as the data access layer
+between the application and the database. It encapsulates CRUD operations
+and enforces business rules such as:
+
+- Validating required fields before inserting or updating entries
+- Cleaning and normalizing input data via filter_empty_fields
+- Ensuring existence of records before update/delete operations
+- Raising domain-specific exceptions for invalid operations
+
+This separation keeps database logic centralized and decoupled from
+the CLI or other interfaces.
+"""
+
 from .models import Entry
 from .exceptions import (
     MissingCompany,
     MissingJobTitle,
+    WrongFieldType,
     MissingUpdateFields,
     MissingSearchCriteria,
     EntryNotFound,
@@ -29,7 +46,7 @@ class EntryDB:
         self.session = session
 
     # Adds a new Entry to the session after validating required fields.
-    def add(self, entry: Entry) -> None:
+    def add(self, data: dict) -> None:
         """
         Adds a new Entry to the database.
 
@@ -38,12 +55,8 @@ class EntryDB:
         Args:
             entry (Entry): Entry instance to add.
         """
-        # Validate required fields before inserting into the database.
-        if not entry.company:
-            raise MissingCompany()
-        if not entry.job_title:
-            raise MissingJobTitle()
-
+        validated_data = _validate_entry_data(data)
+        entry = Entry(**validated_data)
         self.session.add(entry)
 
     # Retrieves entries matching given filters. Filters are cleaned before querying.
@@ -125,3 +138,22 @@ class EntryDB:
         Deletes all entries from the database.
         """
         self.session.query(Entry).delete()
+
+
+def _validate_entry_data(data: dict) -> dict:
+    filtered_data = filter_empty_fields(data)
+
+    REQUIRED_FIELDS = {"company": MissingCompany, "job_title": MissingJobTitle}
+
+    STRING_FIELDS = ["company", "job_title", "status"]
+
+    for field, error in REQUIRED_FIELDS.items():
+        if not filtered_data.get(field):
+            raise error()
+
+    for field in STRING_FIELDS:
+        value = filtered_data.get(field)
+        if value is not None and not isinstance(value, str):
+            raise WrongFieldType(str)
+
+    return filtered_data
