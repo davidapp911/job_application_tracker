@@ -7,8 +7,6 @@ to provide clear and consistent error handling.
 
 __all__ = [
     "EntryException",
-    "MissingCompany",
-    "MissingJobTitle",
     "MissingUpdateFields",
     "MissingSearchCriteria",
     "EntryNotFound",
@@ -23,28 +21,28 @@ class EntryException(Exception):
         self.message = message
 
 
-# Specific exception raised when the company field is missing.
-class MissingCompany(EntryException):
-    def __init__(self) -> None:
-        super().__init__("Company name is required.")
-
-
-# Specific exception raised when the job title field is missing.
-class MissingJobTitle(EntryException):
-    def __init__(self) -> None:
-        super().__init__("Job title is required.")
-
-
 # Specific exception raised when no fields are provided for an update operation.
 class MissingUpdateFields(EntryException):
     def __init__(self) -> None:
         super().__init__("No fields provided for update.")
 
 
+# Specific exception raised when a Field is empty.
+class EmptyField(EntryException):
+    def __init__(self, field) -> None:
+        super().__init__(f"Data for {field} is missing.")
+
+
 # Specific exception raised when a Field has the wrong data type.
 class WrongFieldType(EntryException):
-    def __init__(self, field_type) -> None:
-        super().__init__(f"Field must be of type {field_type}.")
+    def __init__(self, field_type, value) -> None:
+        super().__init__(f"Field must be of type {field_type}. {value}")
+
+
+# Specific exception raised when a Field is not allowed.
+class FieldNotAllowed(EntryException):
+    def __init__(self, field) -> None:
+        super().__init__(f"Field {field} is not allowed.")
 
 
 # Specific exception raised when no filters are provided for a search operation.

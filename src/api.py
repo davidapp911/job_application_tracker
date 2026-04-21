@@ -14,16 +14,17 @@ This separation keeps database logic centralized and decoupled from
 the CLI or other interfaces.
 """
 
+from typing import Optional
+
 from .models import Entry
 from .exceptions import (
-    MissingCompany,
-    MissingJobTitle,
+    EmptyField,
     WrongFieldType,
+    FieldNotAllowed,
     MissingUpdateFields,
     MissingSearchCriteria,
     EntryNotFound,
 )
-from .data_utils import filter_empty_fields
 from sqlalchemy.orm import Session
 
 
@@ -46,7 +47,7 @@ class EntryDB:
         self.session = session
 
     # Adds a new Entry to the session after validating required fields.
-    def add(self, data: dict) -> None:
+    def add(self, data: dict) -> int:
         """
         Adds a new Entry to the database.
 
@@ -55,9 +56,17 @@ class EntryDB:
         Args:
             entry (Entry): Entry instance to add.
         """
+        # Validate and normalize input before model creation.
         validated_data = _validate_entry_data(data)
+
+        # Create ORM object only after data is guaranteed valid.
         entry = Entry(**validated_data)
+
+        # Add to session and flush so the database assigns an ID immediately.
         self.session.add(entry)
+        self.session.flush()
+
+        return entry.id
 
     # Retrieves entries matching given filters. Filters are cleaned before querying.
     def get_by(self, fields: dict) -> list[dict]:
@@ -70,16 +79,16 @@ class EntryDB:
         Returns:
             list[dict]: Matching entries.
         """
-        # Remove empty or invalid fields from the input.
-        fields = filter_empty_fields(fields)
+        # Validate and sanitize filter input (no invalid types or fields).
+        search_filter = _validate_filter_data(fields)
 
-        # Ensure at least one valid filter is provided.
-        if not fields:
+        # Require at least one filter to avoid full table scans.
+        if not search_filter:
             raise MissingSearchCriteria()
 
         return [
             entry.to_dict()
-            for entry in self.session.query(Entry).filter_by(**fields).all()
+            for entry in self.session.query(Entry).filter_by(**search_filter).all()
         ]
 
     # Retrieves all entries from the database.
@@ -101,19 +110,23 @@ class EntryDB:
             id (int): Entry identifier.
             data (dict): Fields to update.
         """
-        # Clean input data by removing empty fields.
-        data = filter_empty_fields(data)
         # Retrieve the entry to ensure it exists before updating.
         entry = self.session.query(Entry).filter(Entry.id == id).first()
 
-        # Prevent updates with no valid fields.
+        # Prevent updates with no provided data.
         if not data:
             raise MissingUpdateFields()
-        # Raise error if the entry does not exist.
+
+        # Ensure the target entry exists before applying changes.
         if not entry:
             raise EntryNotFound(id)
 
-        entry.update(data)
+        # Validate only provided fields (partial update allowed).
+        validated_data = _validate_entry_data(data, partial=True)
+
+        # Apply updates dynamically; SQLAlchemy tracks these changes automatically.
+        for k, v in validated_data.items():
+            setattr(entry, k, v)
 
     # Deletes an entry by id after verifying its existence.
     def delete(self, id: int) -> None:
@@ -123,13 +136,14 @@ class EntryDB:
         Args:
             id (int): Entry identifier.
         """
-        # Retrieve the entry to confirm it exists.
+        # Retrieve entry to ensure it exists before deletion.
         entry = self.session.query(Entry).filter(Entry.id == id).first()
 
-        # Raise error if the entry does not exist.
+        # Prevent deleting non-existent records.
         if not entry:
             raise EntryNotFound(id)
 
+        # Mark object for deletion; commit handled externally.
         self.session.delete(entry)
 
     # Deletes all entries in the table (bulk operation).
@@ -140,20 +154,64 @@ class EntryDB:
         self.session.query(Entry).delete()
 
 
-def _validate_entry_data(data: dict) -> dict:
-    filtered_data = filter_empty_fields(data)
+def _validate_entry_data(data: dict, partial: Optional[bool] = False) -> dict:
+    # Fields required for full object creation.
+    REQUIRED_FIELDS = ["company", "job_title"]
+    # Fields allowed to be passed into the API.
+    ALLOWED_FIELDS = ["company", "job_title", "status"]
 
-    REQUIRED_FIELDS = {"company": MissingCompany, "job_title": MissingJobTitle}
+    # Full validation: enforce required fields only when not performing partial updates.
+    if not partial:
+        for field in REQUIRED_FIELDS:
+            value = data.get(field)
+            if value is None or not isinstance(value, str) or value.strip() == "":
+                raise EmptyField(field)
 
-    STRING_FIELDS = ["company", "job_title", "status"]
+    # Validate each provided field individually.
+    for field, value in data.items():
 
-    for field, error in REQUIRED_FIELDS.items():
-        if not filtered_data.get(field):
-            raise error()
+        # Reject unknown fields early.
+        if field not in ALLOWED_FIELDS:
+            raise FieldNotAllowed(field)
 
-    for field in STRING_FIELDS:
-        value = filtered_data.get(field)
-        if value is not None and not isinstance(value, str):
-            raise WrongFieldType(str)
+        # Enforce string type for all fields.
+        if not isinstance(value, str):
+            raise WrongFieldType("str", type(value))
 
-    return filtered_data
+        # Field-specific validation rules.
+        if field == "status":
+            # Status is optional on creation but cannot be empty on update.
+            if not partial:
+                if value.strip() == "":
+                    continue
+            else:
+                if value.strip() == "":
+                    raise EmptyField(field)
+        else:
+            # Required fields must not be empty strings.
+            if value.strip() == "":
+                raise EmptyField(field)
+
+    return data
+
+
+def _validate_filter_data(data: dict) -> dict:
+    ALLOWED_FIELDS = ["id", "company", "job_title", "status"]
+    # Validate filter fields and enforce allowed types.
+    for field, value in data.items():
+        # ID must be an integer for exact matching.
+        if field == "id":
+            if isinstance(value, int):
+                continue
+            else:
+                raise WrongFieldType("int", type(value))
+        else:
+            # Validate string-based filters.
+            if field not in ALLOWED_FIELDS:
+                raise FieldNotAllowed(field)
+            if isinstance(value, str):
+                continue
+            else:
+                raise WrongFieldType("str", type(value))
+
+    return data
