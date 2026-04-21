@@ -2,106 +2,63 @@
 Tests for the filter_empty_fields utility function.
 
 These tests cover:
-- Pass-through behavior for valid inputs
+- Pass-through behavior for valid, non-empty inputs
 - Removal of None, empty, and whitespace-only values
-- ID normalization and validation
-- Mixed input scenarios (real-world cases)
-- Edge cases like empty dictionaries
+- ID normalization (string → int) and validation
+- Mixed input scenarios (real-world combinations)
+- Edge cases such as empty dictionaries
 """
 
 import pytest
 from src.data_utils import filter_empty_fields
+from tests.data.entry_data import VALID_ENTRIES
+from tests.data.filter_cases import (
+    FILTER_MISSING_FIELD,
+    ID_CONVERSION,
+    VALID_ID,
+    INVALID_IDS,
+    FILTER_MIXED_INPUT,
+)
 
 
 # Ensures valid, non-empty inputs are returned unchanged
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [
-        (
-            {"company": "Github", "job_title": "Python Dev"},
-            {"company": "Github", "job_title": "Python Dev"},
-        ),
-        (
-            {"company": "Microsoft", "job_title": "DevOps"},
-            {"company": "Microsoft", "job_title": "DevOps"},
-        ),
-    ],
-)
-def test_input_passes_through(test_input, expected):
-    assert filter_empty_fields(test_input) == expected
+@pytest.mark.parametrize("case", VALID_ENTRIES)
+def test_unchanged_input(case):
+    assert filter_empty_fields(case) == case
 
 
-# Verifies that None, empty strings, and whitespace-only values are removed
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [
-        ({"company": "Github", "job_title": None}, {"company": "Github"}),
-        ({"company": "Github", "job_title": ""}, {"company": "Github"}),
-        ({"company": "Github", "job_title": "   "}, {"company": "Github"}),
-    ],
-)
-def test_removes_none_and_empty_values(test_input, expected):
-    assert filter_empty_fields(test_input) == expected
+# Verifies that None, empty strings, and whitespace-only values are filtered out
+@pytest.mark.parametrize("case", FILTER_MISSING_FIELD)
+def test_removes_none_and_empty_values(case):
+    assert filter_empty_fields(case["entry_data"]) == case["expected"]
 
 
-# Confirms that string IDs are correctly converted to integers
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [
-        ({"id": "1"}, 1),
-        ({"id": "9999999"}, 9999999),
-    ],
-)
-def test_valid_id_conversion(test_input, expected):
-    output = filter_empty_fields(test_input)
-    assert output["id"] == expected
+# Confirms that numeric string IDs are converted to integers
+@pytest.mark.parametrize("case", ID_CONVERSION)
+def test_valid_id_conversion(case):
+    output = filter_empty_fields(case["id_data"])
+    assert output["id"] == case["expected"]
 
 
-# Ensures invalid ID values raise a ValueError (non-numeric, bool, or whitespace)
-@pytest.mark.parametrize(
-    "test_input",
-    [{"id": "abc"}, {"id": False}, {"id": "  "}],
-)
-def test_invalid_id(test_input):
+# Ensures invalid ID values raise a ValueError (non-numeric strings, bools, or whitespace)
+@pytest.mark.parametrize("case", INVALID_IDS)
+def test_invalid_id(case):
     with pytest.raises(ValueError):
-        filter_empty_fields(test_input)
+        filter_empty_fields(case)
 
 
 # Verifies that integer IDs remain unchanged
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [
-        ({"id": 100}, {"id": 100}),
-        ({"id": 0}, {"id": 0}),
-        ({"id": 99999}, {"id": 99999}),
-    ],
-)
-def test_id_already_int(test_input, expected):
-    assert filter_empty_fields(test_input) == expected
+@pytest.mark.parametrize("case", VALID_ID)
+def test_id_already_int(case):
+    assert filter_empty_fields(case) == case
 
 
-# Tests realistic scenarios with mixed valid, empty, and special-case fields
-@pytest.mark.parametrize(
-    "test_input,expected",
-    [
-        (
-            {"id": 10, "company": "Github", "job_title": ""},
-            {"id": 10, "company": "Github"},
-        ),
-        (
-            {"id": "100", "company": "   ", "job_title": None, "status": "Rejected"},
-            {"id": 100, "status": "Rejected"},
-        ),
-        (
-            {"id": "0", "company": "Microsoft", "random_key": "random_value"},
-            {"id": 0, "company": "Microsoft", "random_key": "random_value"},
-        ),
-    ],
-)
-def test_mixed_input(test_input, expected):
-    assert filter_empty_fields(test_input) == expected
+# Tests mixed scenarios combining valid fields, empty values, and ID normalization
+@pytest.mark.parametrize("case", FILTER_MIXED_INPUT)
+def test_mixed_input(case):
+    assert filter_empty_fields(case["entry_data"]) == case["expected"]
 
 
-# Ensures function handles empty input gracefully
+# Ensures the function returns an empty dict when given empty input
 def test_empty_dictionary():
     assert filter_empty_fields({}) == {}
