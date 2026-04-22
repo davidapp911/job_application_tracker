@@ -17,6 +17,7 @@ the CLI or other interfaces.
 from typing import Optional
 
 from .models import Entry
+from .data_utils import filter_empty_fields
 from .exceptions import (
     EmptyField,
     WrongFieldType,
@@ -80,7 +81,8 @@ class EntryDB:
             list[dict]: Matching entries.
         """
         # Validate and sanitize filter input (no invalid types or fields).
-        search_filter = _validate_filter_data(fields)
+        filtered = filter_empty_fields(fields)
+        search_filter = _validate_filter_data(filtered)
 
         # Require at least one filter to avoid full table scans.
         if not search_filter:
@@ -110,11 +112,14 @@ class EntryDB:
             id (int): Entry identifier.
             data (dict): Fields to update.
         """
+        # filter update data to remove empty fields.
+        filtered_data = filter_empty_fields(data)
+
         # Retrieve the entry to ensure it exists before updating.
         entry = self.session.query(Entry).filter(Entry.id == id).first()
 
         # Prevent updates with no provided data.
-        if not data:
+        if not filtered_data:
             raise MissingUpdateFields()
 
         # Ensure the target entry exists before applying changes.
@@ -122,7 +127,7 @@ class EntryDB:
             raise EntryNotFound(id)
 
         # Validate only provided fields (partial update allowed).
-        validated_data = _validate_entry_data(data, partial=True)
+        validated_data = _validate_entry_data(filtered_data, partial=True)
 
         # Apply updates dynamically; SQLAlchemy tracks these changes automatically.
         for k, v in validated_data.items():
@@ -197,6 +202,7 @@ def _validate_entry_data(data: dict, partial: Optional[bool] = False) -> dict:
 
 def _validate_filter_data(data: dict) -> dict:
     ALLOWED_FIELDS = ["id", "company", "job_title", "status"]
+
     # Validate filter fields and enforce allowed types.
     for field, value in data.items():
         # ID must be an integer for exact matching.

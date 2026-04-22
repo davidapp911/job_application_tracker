@@ -1,42 +1,35 @@
 # Job Application Tracker
 
-A simple command-line application to track and manage job applications using a local SQLite database.
+A command-line tool for tracking and managing job applications, backed by a local SQLite database. Built with a clean layered architecture: CLI → API → Data Utilities → Database.
 
 ---
 
-## 🚀 Features
+## Tech Stack
 
-- Add new job applications  
-- List all entries  
-- Search using multiple filters (id, company, job title, status)  
-- Update existing entries  
-- Delete entries  
-- Reset the database  
-- Input cleaning and validation  
-
----
-
-## 🛠️ Tech Stack
-
-- Python  
-- Typer (CLI framework)  
-- SQLAlchemy (ORM)  
-- SQLite (database)  
+| Layer | Technology |
+|-------|-----------|
+| Language | Python 3.14 |
+| CLI | [Typer](https://typer.tiangolo.com/) |
+| ORM | SQLAlchemy 2.0 |
+| Database | SQLite (local file) |
+| Display | Tabulate |
+| Linting | Ruff + Black |
+| Testing | pytest |
 
 ---
 
-## 📦 Installation
+## Installation
 
 1. Clone the repository:
 
-```
-git clone https://github.com/your-username/job_application_tracker.git
+```bash
+git clone <repo-url>
 cd job_application_tracker
 ```
 
 2. Create and activate a virtual environment:
 
-```
+```bash
 python -m venv venv
 source venv/bin/activate      # macOS / Linux
 venv\Scripts\activate         # Windows
@@ -44,112 +37,105 @@ venv\Scripts\activate         # Windows
 
 3. Install dependencies:
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## ▶️ Usage
+## Usage
 
-Run the CLI:
+All commands are run via:
 
-```
-python -m src.cli
+```bash
+python -m src.cli [COMMAND] [OPTIONS]
 ```
 
 ---
 
-## 📌 Commands
+## Commands
 
 ### Add a new entry
 
-```
-japp add "DELL" "Software Engineer"
+```bash
+python -m src.cli add "Google" "Software Engineer"
 ```
 
 ### List all entries
 
-```
-japp list
+```bash
+python -m src.cli list
 ```
 
 ### Search entries
 
-```
-japp search-by --company "DELL"
-japp search-by --id 1
-japp search-by --company "DELL" --job-title "Engineer"
+Filter by any combination of fields:
+
+```bash
+python -m src.cli search-by --company "Google"
+python -m src.cli search-by --id 1
+python -m src.cli search-by --job-title "Engineer"
+python -m src.cli search-by --status "Pending start"
+python -m src.cli search-by --company "Google" --job-title "Engineer"
 ```
 
 ### Update an entry
 
-```
-japp update 1 --company "AMAZON"
+Pass one or more fields to update by entry ID:
+
+```bash
+python -m src.cli update 1 --company "Amazon"
+python -m src.cli update 1 --job-title "Senior Engineer" --status "Applied"
 ```
 
 ### Delete an entry
 
-```
-japp delete 1
+```bash
+python -m src.cli delete 1
 ```
 
-### Reset database
+### Reset the database
 
-```
-japp reset
+Deletes all entries (prompts for confirmation):
+
+```bash
+python -m src.cli reset
 ```
 
 ---
 
-## 🧪 Testing
+## Data Model
 
-Tests are written using `pytest`.
+Each job application entry stores:
 
-Run tests with:
+| Field | Type | Required | Default |
+|-------|------|----------|---------|
+| `id` | Integer (auto) | — | — |
+| `company` | String (max 30) | Yes | — |
+| `job_title` | String (max 30) | Yes | — |
+| `status` | String (max 30) | No | `"Pending start"` |
 
-```
+---
+
+## Testing
+
+Tests use `pytest` with CRUD markers for categorization.
+
+```bash
+# Run all tests
 pytest
+
+# Run by category
+pytest -m create
+pytest -m read
+pytest -m update
+pytest -m delete
 ```
 
----
-
-## 📁 Project Structure
-
-```
-src/
-├── api.py           # Business logic (EntryDB)
-├── cli.py           # CLI commands
-├── cli_utils.py     # CLI helpers
-├── data_utils.py    # Data cleaning utilities
-├── db.py            # Database configuration
-├── models.py        # ORM models
-├── exceptions.py    # Custom exceptions
-```
+Available markers (defined in `pytest.ini`): `create`, `read`, `update`, `delete`.
 
 ---
 
-## 🧠 Design Overview
-
-The application is structured in layers:
-
-- **CLI layer** → Handles user input/output  
-- **API layer** → Business logic and validation  
-- **Data utilities** → Input cleaning and normalization  
-- **Database layer** → Persistence via SQLAlchemy  
-
----
-
-## 📌 Future Improvements
-
-- Add full test coverage  
-- Improve validation and typing  
-- Add application status workflows  
-- Export data (CSV/JSON)  
-- Package as an installable CLI tool  
-
----
-
-## 📄 License
+## License
 
 This project is for learning and personal use.

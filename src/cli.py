@@ -8,7 +8,6 @@ job application entries.
 import typer
 from typing import Optional
 from .db import init_db
-from .models import Entry
 from .exceptions import EntryException
 from .cli_utils import database_session, handle_cli_error, success, print_table
 
@@ -30,7 +29,7 @@ def add(
     """
     try:
         with database_session() as db:
-            db.add(Entry(company=company, job_title=job_title))
+            db.add({"company": company, "job_title": job_title})
     except EntryException as e:
         handle_cli_error(e)
 
@@ -55,7 +54,7 @@ def search_by(
     id: Optional[int] = typer.Option(None),
     company: Optional[str] = typer.Option(None),
     job_title: Optional[str] = typer.Option(None),
-    application_status: Optional[str] = typer.Option(None),
+    status: Optional[str] = typer.Option(None),
 ) -> None:
     """
     Searches for entries using one or more optional filters.
@@ -68,7 +67,7 @@ def search_by(
         "id": id,
         "company": company,
         "job_title": job_title,
-        "application_status": application_status,
+        "status": status,
     }
 
     try:
@@ -85,6 +84,7 @@ def update(
     id: int = typer.Argument(...),
     company: Optional[str] = typer.Option(None),
     job_title: Optional[str] = typer.Option(None),
+    status: Optional[str] = typer.Option(None),
 ) -> None:
     """
     Updates an existing job application entry.
@@ -96,6 +96,7 @@ def update(
     update_data = {
         "company": company,
         "job_title": job_title,
+        "status": status,
     }
 
     try:
