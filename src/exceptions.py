@@ -55,3 +55,10 @@ class MissingSearchCriteria(EntryException):
 class EntryNotFound(EntryException):
     def __init__(self, value) -> None:
         super().__init__(f"Entry with id {value} not found.")
+
+
+# Specific exception raised when user provides the wrong input.
+class WrongInputException(Exception):
+    def __init__(self, message) -> None:
+        super().__init__(message)
+        self.message = message

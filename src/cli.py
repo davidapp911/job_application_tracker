@@ -8,8 +8,13 @@ job application entries.
 import typer
 from typing import Optional
 from .db import init_db
-from .exceptions import EntryException
-from .cli_utils import database_session, handle_cli_error, success, print_table
+from .exceptions import EntryException, WrongInputException
+from .cli_utils import (
+    database_session,
+    handle_cli_error,
+    success,
+    print_table,
+)
 
 init_db()
 
@@ -53,7 +58,7 @@ def list() -> None:
 def search_by(
     id: Optional[int] = typer.Option(None),
     company: Optional[str] = typer.Option(None),
-    job_title: Optional[str] = typer.Option(None),
+    job_title: Optional[str] = typer.Option(None, "--job_title"),
     status: Optional[str] = typer.Option(None),
 ) -> None:
     """
@@ -83,7 +88,7 @@ def search_by(
 def update(
     id: int = typer.Argument(...),
     company: Optional[str] = typer.Option(None),
-    job_title: Optional[str] = typer.Option(None),
+    job_title: Optional[str] = typer.Option(None, "--job_title"),
     status: Optional[str] = typer.Option(None),
 ) -> None:
     """
@@ -135,7 +140,7 @@ def reset() -> None:
     )
 
     # Only proceed if user explicitly confirms with 'y'.
-    if flag == "y":
+    if flag == "y" or flag == "Y":
         # Execute bulk delete through the API layer.
         try:
             with database_session() as db:
@@ -144,6 +149,10 @@ def reset() -> None:
             handle_cli_error(e)
 
         success("All entries were deleted successfully.")
+    elif flag == "n" or flag == "N":
+        print("Database reset aborted.")
+    else:
+        handle_cli_error(WrongInputException("Invalid input provided."))
 
 
 # Entry point for running the CLI application directly.

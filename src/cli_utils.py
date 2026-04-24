@@ -57,7 +57,7 @@ def print_table(entries: list[dict]) -> None:
         entries (list[dict]): Data to display.
     """
     if not entries:
-        print("No entries found")
+        print("No entries found.")
     else:
         print(f"\n{tabulate(entries, headers='keys')}\n")
 
