@@ -18,6 +18,7 @@ from tests.data.filter_cases import (
     VALID_ID,
     INVALID_IDS,
     FILTER_MIXED_INPUT,
+    INCLUDE_EMPTY_STR_FALSE,
 )
 
 
@@ -69,3 +70,10 @@ def test_mixed_input(case):
 @pytest.mark.data_utils
 def test_empty_dictionary():
     assert filter_empty_fields({}) == {}
+
+
+# Verifies include_empty_str=False mode: None is stripped, empty/whitespace strings pass through
+@pytest.mark.data_utils
+@pytest.mark.parametrize("case", INCLUDE_EMPTY_STR_FALSE)
+def test_include_empty_str_false(case):
+    assert filter_empty_fields(case["entry_data"], include_empty_str=False) == case["expected"]

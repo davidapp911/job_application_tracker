@@ -31,6 +31,7 @@ from tests.data.get_by_cases import (
 from tests.data.update_cases import (
     FULL_UPDATE,
     PARTIAL_UPDATE,
+    NONE_MIXED_UPDATE,
     INVALID_UPDATE_PAYLOADS,
 )
 from tests.data.delete_cases import (
@@ -266,6 +267,18 @@ def test_update_invalid_id_with_existing_data(database_api):
     invalid_id = 9999
     with pytest.raises(EntryException):
         database_api.update(invalid_id, {"company": "Indeed"})
+
+
+# Verifies that None values in the update payload are silently dropped and only valid fields are applied.
+@pytest.mark.update
+@pytest.mark.parametrize("case", NONE_MIXED_UPDATE)
+def test_update_none_fields_ignored(case, database_api):
+    entry_id = database_api.add(entry_data_generator(1))
+    database_api.update(entry_id, case["new_data"])
+    entry = database_api.get_by({"id": entry_id})[0]
+
+    for field, expected_value in case["applied"].items():
+        assert entry[field] == expected_value
 
 
 # Ensures invalid update payloads are rejected.

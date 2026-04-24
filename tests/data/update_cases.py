@@ -4,6 +4,7 @@ Shared test data for update-related API tests.
 These cases validate:
 - full updates where all fields are modified
 - partial updates where only a subset of fields change
+- None-mixed updates where None fields are silently dropped (no-op)
 - rejection of invalid payloads (wrong types, empty values, unknown fields)
 """
 
@@ -26,6 +27,15 @@ PARTIAL_UPDATE = [
     {"new_data": {"job_title": "AI Engineer"}},
     {"new_data": {"status": "Awaiting Response"}},
 ]
+
+# Cases where None values are mixed with valid fields.
+# None fields are stripped before validation (no-op), and only valid fields are applied.
+NONE_MIXED_UPDATE = [
+    {"new_data": {"company": None, "job_title": "Engineer"}, "applied": {"job_title": "Engineer"}},
+    {"new_data": {"company": "Google", "status": None}, "applied": {"company": "Google"}},
+    {"new_data": {"company": None, "job_title": "DevOps", "status": None}, "applied": {"job_title": "DevOps"}},
+]
+
 
 # Cases that should fail validation during update operations.
 # Covers:

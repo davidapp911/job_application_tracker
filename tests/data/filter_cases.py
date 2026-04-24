@@ -6,6 +6,7 @@ These cases verify:
 - ID normalization (string -> int)
 - handling of valid vs invalid IDs
 - behavior with mixed/extra inputs
+- include_empty_str=False mode (None stripped, empty strings preserved)
 """
 
 # Cases where empty, whitespace-only, or None values should be removed.
@@ -58,6 +59,37 @@ INVALID_IDS = [
     {"id": "  "},
     {"id": "01 23"},
 ]
+
+# Cases for include_empty_str=False mode.
+# None is still stripped; empty and whitespace strings are preserved for downstream validation.
+INCLUDE_EMPTY_STR_FALSE = [
+    # None is stripped, empty string passes through
+    {
+        "entry_data": {"company": "", "job_title": None},
+        "expected": {"company": ""},
+    },
+    # Whitespace-only string passes through (not stripped)
+    {
+        "entry_data": {"company": "   "},
+        "expected": {"company": "   "},
+    },
+    # None removed, valid string kept
+    {
+        "entry_data": {"company": None, "job_title": "Engineer"},
+        "expected": {"job_title": "Engineer"},
+    },
+    # Both None fields stripped, valid field kept
+    {
+        "entry_data": {"company": None, "job_title": None, "status": "Rejected"},
+        "expected": {"status": "Rejected"},
+    },
+    # All None → empty dict
+    {
+        "entry_data": {"company": None, "job_title": None},
+        "expected": {},
+    },
+]
+
 
 # Mixed input scenarios combining valid fields, empty values, and extra keys.
 # Verifies that:
