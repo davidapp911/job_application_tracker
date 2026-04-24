@@ -12,52 +12,44 @@ and updating database records.
 # - Strips and ignores empty strings
 # - Converts "id" field to integer
 # - Preserves non-string values as-is
-def filter_empty_fields(data: dict) -> dict:
+def filter_empty_fields(data: dict, include_empty_str: bool = True) -> dict:
     """
     Cleans a dictionary by removing empty or invalid values.
 
     - Skips None values
-    - Strips and ignores empty strings
+    - Strips and ignores empty strings (when include_empty_str is True)
     - Converts the "id" field to an integer
     - Preserves non-string values as-is
 
     Args:
         data (dict): Raw input dictionary.
+        include_empty_str (bool): When True, strips empty strings. When False,
+            only strips None values and lets empty strings through for validation.
 
     Returns:
         dict: Cleaned dictionary with only valid fields.
     """
-    # Dictionary to store cleaned key-value pairs.
     output = {}
 
-    # Iterate through all provided fields.
     for k, v in data.items():
-        # Skip fields with None values.
         if v is None:
             continue
 
-        # Special handling for "id" field: ensure it is an integer.
         if k == "id":
-            # Attempt to convert id to integer.
-
             if isinstance(v, bool):
                 raise ValueError("Invalid id value: {v}")
 
             try:
                 output[k] = int(v)
-            # Raise a clear error if conversion fails.
             except (ValueError, TypeError):
                 raise ValueError(f"Invalid id value: {v}")
             continue
 
-        # Handle string values: ignore empty or whitespace-only strings.
         if isinstance(v, str):
-            # Only include non-empty strings.
-            if v.strip() != "":
-                output[k] = v
-        # Preserve non-string values without modification.
+            if include_empty_str and v.strip() == "":
+                continue
+            output[k] = v
         else:
             output[k] = v
 
-    # Return the cleaned dictionary.
     return output

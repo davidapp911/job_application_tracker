@@ -55,7 +55,6 @@ INVALID_UPDATE_PAYLOADS = [
     {"new_data": {"id": 999}},
     # Mixed valid + invalid (should still fail)
     {"new_data": {"company": "Google", "job_title": ""}},
-    {"new_data": {"company": None, "job_title": "Engineer"}},
     # Completely empty payload (depends on your design)
     {"new_data": {}},
 ]

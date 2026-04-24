@@ -112,8 +112,7 @@ class EntryDB:
             id (int): Entry identifier.
             data (dict): Fields to update.
         """
-        # filter update data to remove empty fields.
-        filtered_data = filter_empty_fields(data)
+        filtered_data = filter_empty_fields(data, include_empty_str=False)
 
         # Retrieve the entry to ensure it exists before updating.
         entry = self.session.query(Entry).filter(Entry.id == id).first()
