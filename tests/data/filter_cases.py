@@ -1,16 +1,6 @@
-"""
-Shared test data for filter/normalization utilities.
+"""Test data for filter_empty_fields: normalization, ID conversion, and edge cases."""
 
-These cases verify:
-- removal of empty/whitespace/None fields
-- ID normalization (string -> int)
-- handling of valid vs invalid IDs
-- behavior with mixed/extra inputs
-- include_empty_str=False mode (None stripped, empty strings preserved)
-"""
-
-# Cases where empty, whitespace-only, or None values should be removed.
-# "entry_data" is the raw input; "expected" is the cleaned result after filtering.
+# Each case maps "entry_data" (raw input) to "expected" (cleaned output).
 FILTER_MISSING_FIELD = [
     {
         "entry_data": {"company": "Github", "job_title": "      "},
@@ -38,8 +28,7 @@ FILTER_MISSING_FIELD = [
     },
 ]
 
-# Cases for normalizing the "id" field.
-# Accepts numeric strings (including zero-padded) and integers; outputs integer form.
+# Numeric string IDs (including zero-padded) normalized to int; int IDs passed through.
 ID_CONVERSION = [
     {"id_data": {"id": "00000001"}, "expected": 1},
     {"id_data": {"id": "2347"}, "expected": 2347},
@@ -51,8 +40,7 @@ VALID_ID = [
     {"id": 100},
 ]
 
-# Invalid ID inputs that should fail validation.
-# Includes non-numeric strings, booleans, whitespace, and malformed numeric strings.
+# Non-numeric strings, booleans, and whitespace IDs — should raise ValueError.
 INVALID_IDS = [
     {"id": "abc"},
     {"id": False},
@@ -60,15 +48,14 @@ INVALID_IDS = [
     {"id": "01 23"},
 ]
 
-# Cases for include_empty_str=False mode.
-# None is still stripped; empty and whitespace strings are preserved for downstream validation.
+# include_empty_str=False: None stripped, empty and whitespace strings pass through.
 INCLUDE_EMPTY_STR_FALSE = [
-    # None is stripped, empty string passes through
+    # None stripped, empty string passes through
     {
         "entry_data": {"company": "", "job_title": None},
         "expected": {"company": ""},
     },
-    # Whitespace-only string passes through (not stripped)
+    # Whitespace-only string passes through
     {
         "entry_data": {"company": "   "},
         "expected": {"company": "   "},
@@ -91,11 +78,7 @@ INCLUDE_EMPTY_STR_FALSE = [
 ]
 
 
-# Mixed input scenarios combining valid fields, empty values, and extra keys.
-# Verifies that:
-# - empty/None/whitespace values are removed
-# - valid IDs are normalized
-# - unrelated keys are preserved if not explicitly filtered
+# Scenarios combining valid, empty, and ID-normalized fields with extra keys.
 FILTER_MIXED_INPUT = [
     {
         "entry_data": {"id": 10, "company": "Github", "job_title": ""},

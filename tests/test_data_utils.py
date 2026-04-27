@@ -1,24 +1,16 @@
-"""
-Tests for the filter_empty_fields utility function.
-
-These tests cover:
-- Pass-through behavior for valid, non-empty inputs
-- Removal of None, empty, and whitespace-only values
-- ID normalization (string → int) and validation
-- Mixed input scenarios (real-world combinations)
-- Edge cases such as empty dictionaries
-"""
+"""Tests for the filter_empty_fields utility."""
 
 import pytest
+
 from src.data_utils import filter_empty_fields
 from tests.data.entry_data import VALID_ENTRIES
 from tests.data.filter_cases import (
     FILTER_MISSING_FIELD,
-    ID_CONVERSION,
-    VALID_ID,
-    INVALID_IDS,
     FILTER_MIXED_INPUT,
+    ID_CONVERSION,
     INCLUDE_EMPTY_STR_FALSE,
+    INVALID_IDS,
+    VALID_ID,
 )
 
 

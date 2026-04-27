@@ -1,29 +1,19 @@
-"""
-Shared test data for get_by API tests.
+"""Test data for get_by API tests."""
 
-These cases validate:
-- retrieval by valid filters (single and multiple conditions)
-- behavior when no matching records exist
-- handling of invalid IDs and fields
-"""
-
-# Cases where filtering by ID should return no results because the ID does not exist.
-# "count" represents how many entries exist in the database before the query.
+# ID filters that return no results; "count" is db size at query time.
 INVALID_ID_GET_BY = [
     {"count": 0, "filter": {"id": 999}},
     {"count": 30, "filter": {"id": 999}},
 ]
 
-# Cases using a single filter condition.
-# Verifies that queries correctly return entries matching one field.
+# Single-field filters with known matches in the dataset.
 SINGLE_CONDITION_GET_BY = [
     {"filter": {"company": "Amazon"}},
     {"filter": {"job_title": "Python Dev"}},
     {"filter": {"status": "Pending start"}},
 ]
 
-# Cases using multiple filter conditions.
-# Ensures that all conditions are applied together (logical AND behavior).
+# Multi-field filters applied as logical AND.
 MULTIPLE_CONDITION_GET_BY = [
     {"filter": {"company": "Amazon", "job_title": "Python Dev"}},
     {"filter": {"job_title": "Python Dev", "status": "Pending start"}},
@@ -37,16 +27,14 @@ MULTIPLE_CONDITION_GET_BY = [
     },
 ]
 
-# Valid filter fields that should return no results.
-# Tests behavior when the dataset contains no matching entries.
+# Valid filters that match no records in the dataset.
 GET_BY_NO_MATCH = [
     {"filter": {"company": "Youtube"}},
     {"filter": {"job_title": "Teacher"}},
     {"filter": {"status": "Retired"}},
 ]
 
-# Cases with invalid or unsupported fields in the filter.
-# Ensures the API rejects unknown fields or malformed queries.
+# Filters with unknown or malformed fields — should raise EntryException.
 INVALID_FIELD_GET_BY = [
     {"filter": {"age": 21}},
     {"filter": {"job_title": "Teacher", "color": "Black"}},

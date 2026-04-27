@@ -1,62 +1,50 @@
-"""
-Tests for the API layer (EntryDB).
-
-These tests validate:
-- CRUD operations
-- Business rule enforcement
-- Error handling and exceptions
-- Interaction with the database session
-"""
+"""Tests for the API layer (EntryDB) — CRUD operations, business rules, and error handling."""
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from src.api import EntryDB
 from src.db import Base
 from src.exceptions import EntryException
+from tests.data.delete_cases import (
+    DELETE_ALL_CASES,
+    DELETE_INVALID_ID_CASES,
+    DELETE_VALID_ID_CASES,
+)
 from tests.data.entry_data import (
-    VALID_ENTRIES,
-    MISSING_FIELD_ENTRIES,
-    INVALID_FIELD_ENTRIES,
-    INSERT_COUNTS,
     ENTRY_GENERATOR_COUNT,
+    INSERT_COUNTS,
+    INVALID_FIELD_ENTRIES,
+    MISSING_FIELD_ENTRIES,
+    VALID_ENTRIES,
 )
 from tests.data.get_by_cases import (
-    INVALID_ID_GET_BY,
-    SINGLE_CONDITION_GET_BY,
-    MULTIPLE_CONDITION_GET_BY,
     GET_BY_NO_MATCH,
     INVALID_FIELD_GET_BY,
+    INVALID_ID_GET_BY,
+    MULTIPLE_CONDITION_GET_BY,
+    SINGLE_CONDITION_GET_BY,
 )
 from tests.data.update_cases import (
     FULL_UPDATE,
-    PARTIAL_UPDATE,
-    NONE_MIXED_UPDATE,
     INVALID_UPDATE_PAYLOADS,
-)
-from tests.data.delete_cases import (
-    DELETE_VALID_ID_CASES,
-    DELETE_INVALID_ID_CASES,
-    DELETE_ALL_CASES,
+    NONE_MIXED_UPDATE,
+    PARTIAL_UPDATE,
 )
 
 
 @pytest.fixture
 def session():
-    """Creates an in-memory SQLite session for testing."""
-    # setup
+    """In-memory SQLite session, rolled back and closed after each test."""
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # yield
     try:
-        # Provide the database interface to the caller.
         yield session
-    # teardown
     finally:
-        # Always close the session to release resources.
         session.rollback()
         session.close()
 
@@ -67,14 +55,11 @@ def database_api(session):
 
 
 def entry_data_generator(i):
+    """Generate a deterministic entry dict by cycling through predefined values."""
     companies = ["Github", "Microsoft", "Apple", "Amazon", "Netflix", "Meta"]
     jobs = ["Data Engineer", "DevOps", "ML Engineer", "Python Dev", "QA Developer"]
 
     return {"company": companies[i % len(companies)], "job_title": jobs[i % len(jobs)]}
-
-
-# Helper to generate deterministic test data for bulk operations.
-# Uses modulo to cycle through predefined values for consistency.
 
 
 # --------------------CREATE--------------------#
@@ -269,7 +254,7 @@ def test_update_invalid_id_with_existing_data(database_api):
         database_api.update(invalid_id, {"company": "Indeed"})
 
 
-# Verifies that None values in the update payload are silently dropped and only valid fields are applied.
+# Verifies that None values in the payload are dropped and only valid fields are applied.
 @pytest.mark.update
 @pytest.mark.parametrize("case", NONE_MIXED_UPDATE)
 def test_update_none_fields_ignored(case, database_api):

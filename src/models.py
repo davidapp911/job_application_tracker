@@ -1,28 +1,19 @@
-"""
-Database models for the job application tracker.
-
-Defines ORM mappings using SQLAlchemy for persisting and retrieving
-job application data.
-"""
+"""SQLAlchemy ORM model for a job application entry."""
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
+
 from .db import Base
 
 
-# ORM model representing a job application entry.
 class Entry(Base):
     __tablename__ = "Entry"
 
-    id: Mapped[int] = mapped_column(primary_key=True)  # primary key identifier
-    company: Mapped[str] = mapped_column(String(30))  # company name (limited length)
-    job_title: Mapped[str] = mapped_column(String(30))  # job title (limited length)
-    status: Mapped[str] = mapped_column(
-        (String(30)), default="Pending start"
-    )  # current status of the application with a default value
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company: Mapped[str] = mapped_column(String(30))
+    job_title: Mapped[str] = mapped_column(String(30))
+    status: Mapped[str] = mapped_column(String(30), default="Pending start")
 
-    # Converts the Entry instance into a dictionary for serialization or display.
     def to_dict(self):
         return {
             "id": self.id,
@@ -31,6 +22,5 @@ class Entry(Base):
             "status": self.status,
         }
 
-    # Provides a string representation of the Entry instance (useful for debugging).
     def __repr__(self):
         return f"{self.id} {self.company} {self.job_title}"

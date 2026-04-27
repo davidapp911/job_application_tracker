@@ -1,33 +1,11 @@
-"""
-Data cleaning utilities for preparing input before it reaches the API layer.
-
-Provides helpers to normalize and validate dictionaries used for filtering
-and updating database records.
-"""
+"""Utilities for cleaning and normalizing input dicts before they reach the API layer."""
 
 
-# Utility functions for cleaning and preparing data before it reaches the API layer.
-# Removes empty or invalid fields from the input dictionary.
-# - Skips None values
-# - Strips and ignores empty strings
-# - Converts "id" field to integer
-# - Preserves non-string values as-is
 def filter_empty_fields(data: dict, include_empty_str: bool = True) -> dict:
-    """
-    Cleans a dictionary by removing empty or invalid values.
+    """Remove None values and, when include_empty_str is True, empty/whitespace strings.
 
-    - Skips None values
-    - Strips and ignores empty strings (when include_empty_str is True)
-    - Converts the "id" field to an integer
-    - Preserves non-string values as-is
-
-    Args:
-        data (dict): Raw input dictionary.
-        include_empty_str (bool): When True, strips empty strings. When False,
-            only strips None values and lets empty strings through for validation.
-
-    Returns:
-        dict: Cleaned dictionary with only valid fields.
+    When include_empty_str is False, empty strings pass through for downstream validation.
+    Converts the "id" key to int.
     """
     output = {}
 

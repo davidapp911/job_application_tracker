@@ -1,20 +1,17 @@
-"""
-Command-line interface for the job application tracker.
+"""CLI commands for creating, retrieving, updating, and deleting job application entries."""
 
-Defines commands for creating, retrieving, updating, and deleting
-job application entries.
-"""
+from typing import Optional
 
 import typer
-from typing import Optional
-from .db import init_db
-from .exceptions import EntryException, WrongInputException
+
 from .cli_utils import (
     database_session,
     handle_cli_error,
-    success,
     print_table,
+    success,
 )
+from .db import init_db
+from .exceptions import EntryException, WrongInputException
 
 init_db()
 
@@ -26,12 +23,7 @@ def add(
     company: str = typer.Argument(...),
     job_title: str = typer.Argument(...),
 ) -> None:
-    """
-    Creates a new job application entry.
-
-    Accepts company and job_title as positional arguments,
-    constructs an Entry object, and persists it using the API layer.
-    """
+    """Add a new job application entry."""
     try:
         with database_session() as db:
             db.add({"company": company, "job_title": job_title})
@@ -43,11 +35,7 @@ def add(
 
 @app.command()
 def list() -> None:
-    """
-    Retrieves and displays all job application entries.
-
-    Uses the API layer to fetch all records and prints them in a table format.
-    """
+    """List all job application entries."""
     with database_session() as db:
         entries = db.get_all()
 
@@ -61,13 +49,7 @@ def search_by(
     job_title: Optional[str] = typer.Option(None, "--job_title"),
     status: Optional[str] = typer.Option(None),
 ) -> None:
-    """
-    Searches for entries using one or more optional filters.
-
-    Any combination of id, company, job_title, or application_status
-    can be provided. Only non-empty values are used in the query.
-    """
-    # Build a filter dictionary from CLI inputs (may include None values).
+    """Search entries by any combination of id, company, job_title, or status."""
     query_filter = {
         "id": id,
         "company": company,
@@ -91,13 +73,7 @@ def update(
     job_title: Optional[str] = typer.Option(None, "--job_title"),
     status: Optional[str] = typer.Option(None),
 ) -> None:
-    """
-    Updates an existing job application entry.
-
-    Requires an id (positional argument) and accepts optional fields
-    to update. Only provided (non-empty) fields will be modified.
-    """
-    # Collect fields to update; None values will be filtered out later.
+    """Update fields of an existing entry by id."""
     update_data = {
         "company": company,
         "job_title": job_title,
@@ -115,9 +91,7 @@ def update(
 
 @app.command()
 def delete(id: int = typer.Argument(...)) -> None:
-    """
-    Deletes a job application entry by id.
-    """
+    """Delete a job application entry by id."""
     try:
         with database_session() as db:
             db.delete(id)
@@ -129,19 +103,10 @@ def delete(id: int = typer.Argument(...)) -> None:
 
 @app.command()
 def reset() -> None:
-    """
-    Deletes all job application entries after user confirmation.
+    """Delete all entries after user confirmation."""
+    flag = input("This will remove all the entries in the database. Are you sure? [y/n]")
 
-    Prompts the user before performing a destructive bulk operation.
-    """
-    # Prompt user for confirmation before destructive operation.
-    flag = input(
-        "This will remove all the entries in the database. Are you sure? [y/n]"
-    )
-
-    # Only proceed if user explicitly confirms with 'y'.
     if flag == "y" or flag == "Y":
-        # Execute bulk delete through the API layer.
         try:
             with database_session() as db:
                 db.delete_all()
@@ -155,6 +120,5 @@ def reset() -> None:
         handle_cli_error(WrongInputException("Invalid input provided."))
 
 
-# Entry point for running the CLI application directly.
 if __name__ == "__main__":
     app()

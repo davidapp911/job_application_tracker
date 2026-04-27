@@ -1,18 +1,22 @@
+"""CLI tests using CliRunner and MagicMock — argument routing, flag handling, and error output."""
+
+from unittest.mock import MagicMock, patch
+
 import pytest
 from typer.testing import CliRunner
-from unittest.mock import MagicMock, patch
+
 from src.cli import app
-from tests.data.cli_cases import (
-    SINGLE_ROW_DB,
-    MULTIPLE_ROW_DB,
-    SEARCH_FILTERS,
-    UPDATE_CASES,
-)
 from src.exceptions import (
-    MissingSearchCriteria,
     EmptyField,
     EntryNotFound,
+    MissingSearchCriteria,
     MissingUpdateFields,
+)
+from tests.data.cli_cases import (
+    MULTIPLE_ROW_DB,
+    SEARCH_FILTERS,
+    SINGLE_ROW_DB,
+    UPDATE_CASES,
 )
 
 runner = CliRunner()
@@ -20,17 +24,20 @@ runner = CliRunner()
 
 @pytest.fixture
 def mock_db():
+    """MagicMock standing in for EntryDB."""
     return MagicMock()
 
 
 @pytest.fixture
 def mock_session(mock_db):
+    """Patch database_session to yield mock_db, intercepting all API calls."""
     with patch("src.cli.database_session") as patched:
         patched.return_value.__enter__.return_value = mock_db
         yield mock_db
 
 
 # ---------------------CREATE---------------------#
+# Verifies the add command calls the API with the correct dict and prints a success message.
 @pytest.mark.cli_add
 def test_add_valid_entry(mock_session):
     result = runner.invoke(app, ["add", "Microsoft", "DevOps"])
@@ -40,6 +47,7 @@ def test_add_valid_entry(mock_session):
     assert "Entry created successfully." in result.output
 
 
+# Verifies the add command prints the field-specific error when the API raises EmptyField.
 @pytest.mark.cli_add
 @pytest.mark.parametrize("missing_field", ["company", "job_title"])
 def test_add_missing_field(missing_field, mock_session):
@@ -51,7 +59,7 @@ def test_add_missing_field(missing_field, mock_session):
 
 
 # ---------------------READ---------------------#
-# test command [list] from empty db
+# Verifies the list command prints a message when no entries exist.
 @pytest.mark.cli_list
 def test_list_empty_db(mock_session):
     mock_session.get_all.return_value = []
@@ -62,7 +70,7 @@ def test_list_empty_db(mock_session):
     assert "No entries found." in result.output
 
 
-# test command [list] from single row db
+# Verifies the list command displays all fields for a single entry.
 @pytest.mark.cli_list
 @pytest.mark.parametrize("case", SINGLE_ROW_DB)
 def test_list_single_row_db(case, mock_session):
@@ -77,7 +85,7 @@ def test_list_single_row_db(case, mock_session):
     assert case[0]["status"] in result.output
 
 
-# test command [list] from multiple row db
+# Verifies the list command displays all fields for every entry.
 @pytest.mark.cli_list
 @pytest.mark.parametrize("case", MULTIPLE_ROW_DB)
 def test_list_multiple_row_db(case, mock_session):
@@ -94,6 +102,7 @@ def test_list_multiple_row_db(case, mock_session):
         assert entry["status"] in result.output
 
 
+# Verifies the search-by command passes the correct filter dict to the API.
 @pytest.mark.cli_search_by
 @pytest.mark.parametrize("case", SEARCH_FILTERS)
 def test_search_by_valid_filter(case, mock_session):
@@ -103,6 +112,7 @@ def test_search_by_valid_filter(case, mock_session):
     mock_session.get_by.assert_called_with(case["filter"])
 
 
+# Verifies the search-by command prints an error when no filter criteria are provided.
 @pytest.mark.cli_search_by
 def test_search_by_empty_filter(mock_session):
     mock_session.get_by.side_effect = MissingSearchCriteria()
@@ -113,6 +123,7 @@ def test_search_by_empty_filter(mock_session):
 
 
 # --------------------UPDATE--------------------#
+# Verifies the update command passes the correct id and data dict to the API.
 @pytest.mark.cli_update
 @pytest.mark.parametrize("case", UPDATE_CASES)
 def test_update_valid_entry(case, mock_session):
@@ -122,6 +133,7 @@ def test_update_valid_entry(case, mock_session):
     mock_session.update.assert_called_with(1, case["data"])
 
 
+# Verifies the update command prints an error when the entry does not exist.
 @pytest.mark.cli_update
 def test_update_invalid_id(mock_session):
     mock_session.update.side_effect = EntryNotFound(1)
@@ -131,6 +143,7 @@ def test_update_invalid_id(mock_session):
     assert "Entry with id 1 not found." in result.output
 
 
+# Verifies the update command prints an error when no fields are provided.
 @pytest.mark.cli_update
 def test_update_empty_data(mock_session):
     mock_session.update.side_effect = MissingUpdateFields()
@@ -141,6 +154,7 @@ def test_update_empty_data(mock_session):
 
 
 # --------------------DELETE--------------------#
+# Verifies the delete command calls the API with the correct id and prints a success message.
 @pytest.mark.cli_delete
 def test_delete_valid_entry(mock_session):
     result = runner.invoke(app, ["delete", "1"])
@@ -150,6 +164,7 @@ def test_delete_valid_entry(mock_session):
     assert "Job entry deleted successfully." in result.output
 
 
+# Verifies the delete command prints an error when the entry does not exist.
 @pytest.mark.cli_delete
 def test_delete_invalid_id(mock_session):
     mock_session.delete.side_effect = EntryNotFound(1)
@@ -159,6 +174,7 @@ def test_delete_invalid_id(mock_session):
     assert "Entry with id 1 not found." in result.output
 
 
+# Verifies the reset command deletes all entries when the user confirms with y.
 @pytest.mark.cli_delete
 def test_reset_db_yes(mock_session):
     result = runner.invoke(app, ["reset"], input="y")
@@ -168,6 +184,7 @@ def test_reset_db_yes(mock_session):
     assert "All entries were deleted successfully." in result.output
 
 
+# Verifies the reset command aborts and prints a message when the user inputs n.
 @pytest.mark.cli_delete
 def test_reset_db_no(mock_session):
     result = runner.invoke(app, ["reset"], input="n")
@@ -177,6 +194,7 @@ def test_reset_db_no(mock_session):
     assert "Database reset aborted." in result.output
 
 
+# Verifies the reset command prints an error for input other than y or n.
 @pytest.mark.cli_delete
 @pytest.mark.parametrize("case", ["m", "\n"])
 def test_reset_db_wrong_input(case, mock_session):

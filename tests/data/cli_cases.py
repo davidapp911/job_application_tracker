@@ -1,3 +1,12 @@
+"""
+Test data for CLI tests.
+
+- SINGLE_ROW_DB / MULTIPLE_ROW_DB: mocked get_all return values for list command tests
+- SEARCH_FILTERS: args + expected filter dict pairs for search-by command tests
+- UPDATE_CASES: args + expected data dict pairs for update command tests
+"""
+
+# Single-entry database state used to test list output for a minimal result set.
 SINGLE_ROW_DB = [
     [
         {
@@ -9,6 +18,7 @@ SINGLE_ROW_DB = [
     ]
 ]
 
+# Multi-entry database state used to test list output across all rows.
 MULTIPLE_ROW_DB = [
     [
         {
@@ -44,6 +54,8 @@ MULTIPLE_ROW_DB = [
     ]
 ]
 
+# Filter cases covering all single-field, two-field, three-field, and all-field combinations.
+# Each case maps CLI args to the filter dict the command should pass to the API.
 SEARCH_FILTERS = [
     # single filters
     {
@@ -163,6 +175,8 @@ SEARCH_FILTERS = [
     },
 ]
 
+# Update cases covering single-field, two-field, and all-field combinations.
+# Each case maps CLI args to the data dict the command should pass to the API.
 UPDATE_CASES = [
     # single field
     {
