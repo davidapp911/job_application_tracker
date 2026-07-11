@@ -1,6 +1,9 @@
 """SQLAlchemy ORM model for a job application entry."""
 
-from sqlalchemy import String
+from datetime import date, datetime, timezone
+from typing import Optional
+
+from sqlalchemy import Date, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import Base
@@ -13,6 +16,10 @@ class Entry(Base):
     company: Mapped[str] = mapped_column(String(30))
     job_title: Mapped[str] = mapped_column(String(30))
     status: Mapped[str] = mapped_column(String(30), default="Pending start")
+    created_at: Mapped[date] = mapped_column(
+        Date, default=lambda: datetime.now(timezone.utc).date()
+    )
+    response_at: Mapped[Optional[date]] = mapped_column(Date, default=None)
 
     def to_dict(self):
         return {
@@ -20,6 +27,8 @@ class Entry(Base):
             "company": self.company,
             "job_title": self.job_title,
             "status": self.status,
+            "created_at": self.created_at,
+            "response_at": self.response_at,
         }
 
     def __repr__(self):

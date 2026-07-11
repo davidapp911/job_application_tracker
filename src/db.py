@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 BASE_DIR = Path.home() / ".jobs"
@@ -19,3 +19,20 @@ Base = declarative_base()
 
 def init_db():
     Base.metadata.create_all(engine)
+    _add_missing_columns()
+
+
+NEW_COLUMNS = {
+    "created_at": "DATE",
+    "response_at": "DATE",
+}
+
+
+def _add_missing_columns():
+    """Add columns that were introduced after a user's db file was created."""
+    inspector = inspect(engine)
+    existing_columns = {col["name"] for col in inspector.get_columns("Entry")}
+    with engine.begin() as conn:
+        for column, column_type in NEW_COLUMNS.items():
+            if column not in existing_columns:
+                conn.execute(text(f"ALTER TABLE Entry ADD COLUMN {column} {column_type}"))

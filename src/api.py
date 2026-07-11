@@ -1,5 +1,6 @@
 """API layer for managing job application entries."""
 
+from datetime import date
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -38,7 +39,9 @@ class EntryDB:
         # Require at least one filter to avoid a full table scan.
         if not search_filter:
             raise MissingSearchCriteria()
-        return [entry.to_dict() for entry in self.session.query(Entry).filter_by(**search_filter).all()]
+        return [
+            entry.to_dict() for entry in self.session.query(Entry).filter_by(**search_filter).all()
+        ]
 
     def get_all(self) -> list[dict]:
         """Return all entries."""
@@ -71,7 +74,8 @@ class EntryDB:
 
 def _validate_entry_data(data: dict, partial: Optional[bool] = False) -> dict:
     REQUIRED_FIELDS = ["company", "job_title"]
-    ALLOWED_FIELDS = ["company", "job_title", "status"]
+    ALLOWED_FIELDS = ["company", "job_title", "status", "created_at", "response_at"]
+    DATE_FIELDS = ["created_at", "response_at"]
 
     if not partial:
         for field in REQUIRED_FIELDS:
@@ -82,6 +86,10 @@ def _validate_entry_data(data: dict, partial: Optional[bool] = False) -> dict:
     for field, value in data.items():
         if field not in ALLOWED_FIELDS:
             raise FieldNotAllowed(field)
+        if field in DATE_FIELDS:
+            if not isinstance(value, date):
+                raise WrongFieldType("date", type(value))
+            continue
         if not isinstance(value, str):
             raise WrongFieldType("str", type(value))
         if field == "status":

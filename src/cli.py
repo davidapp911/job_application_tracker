@@ -1,5 +1,6 @@
 """CLI commands for creating, retrieving, updating, and deleting job application entries."""
 
+from datetime import datetime
 from typing import Optional
 
 import typer
@@ -72,12 +73,16 @@ def update(
     company: Optional[str] = typer.Option(None),
     job_title: Optional[str] = typer.Option(None, "--job_title"),
     status: Optional[str] = typer.Option(None),
+    created_at: Optional[datetime] = typer.Option(None),
+    response_at: Optional[datetime] = typer.Option(None),
 ) -> None:
     """Update fields of an existing entry by id."""
     update_data = {
         "company": company,
         "job_title": job_title,
         "status": status,
+        "created_at": created_at.date() if created_at else None,
+        "response_at": response_at.date() if response_at else None,
     }
 
     try:
